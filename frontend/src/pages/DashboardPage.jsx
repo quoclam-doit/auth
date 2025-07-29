@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { useAuthStore } from "../store/authStore";
-import { formatDate } from "../utils/date";
+import { formatDate } from "../utils/helpers";
 import UserLayout from "../components/user/UserLayout";
 import { Link } from "react-router-dom";
 import {
@@ -10,6 +10,7 @@ import {
   User,
   Edit,
   CreditCard,
+  History,
 } from "lucide-react";
 
 const DashboardPage = () => {
@@ -57,10 +58,10 @@ const DashboardPage = () => {
           {/* Welcome Section */}
           <div className="mb-8">
             <h1 className="text-3xl font-bold text-gray-900 mb-2">
-              Xin chào, {user?.name}!
+              Xin chào, {user?.name}! 👋
             </h1>
             <p className="text-gray-600">
-              Chào mừng bạn trở lại với E-Shop. Hãy khám phá những sản phẩm
+              Chào mừng bạn trở lại với EcoStore. Hãy khám phá những sản phẩm
               tuyệt vời!
             </p>
           </div>
@@ -143,44 +144,12 @@ const DashboardPage = () => {
                       {user?.role === "user" ? "Khách hàng" : user?.role}
                     </span>
                   </div>
-                </div>
-              </motion.div>
-
-              {/* Account Activity */}
-              <motion.div
-                className="bg-white rounded-lg shadow-sm border p-6"
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.4 }}
-              >
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                  Hoạt động tài khoản
-                </h3>
-                <div className="space-y-3">
                   <div>
                     <label className="text-sm font-medium text-gray-500">
                       Ngày tham gia
                     </label>
                     <p className="text-gray-900">
-                      {user?.createdAt
-                        ? new Date(user.createdAt).toLocaleDateString("vi-VN", {
-                            year: "numeric",
-                            month: "long",
-                            day: "numeric",
-                          })
-                        : new Date().toLocaleDateString("vi-VN", {
-                            year: "numeric",
-                            month: "long",
-                            day: "numeric",
-                          })}
-                    </p>
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium text-gray-500">
-                      Đăng nhập lần cuối
-                    </label>
-                    <p className="text-gray-900">
-                      {user?.lastLogin ? formatDate(user.lastLogin) : "Hôm nay"}
+                      {formatDate(user?.createdAt)}
                     </p>
                   </div>
                   <div>
@@ -218,6 +187,46 @@ const DashboardPage = () => {
                   <div className="text-center">
                     <div className="text-2xl font-bold text-red-600">0</div>
                     <div className="text-sm text-gray-500">Yêu thích</div>
+                  </div>
+                </div>
+              </motion.div>
+
+              {/* Recent Activity */}
+              <motion.div
+                className="bg-white rounded-lg shadow-sm border p-6"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.6 }}
+              >
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-semibold text-gray-900 flex items-center">
+                    <History className="w-5 h-5 mr-2 text-blue-600" />
+                    Hoạt động gần đây
+                  </h3>
+                  <Link
+                    to="/orders"
+                    className="text-blue-600 hover:text-blue-700 text-sm font-medium"
+                  >
+                    Xem tất cả →
+                  </Link>
+                </div>
+
+                <div className="space-y-3">
+                  {/* Sample recent activities */}
+                  <div className="flex items-center justify-between py-2">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center">
+                        <Package className="w-4 h-4 text-green-600" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-gray-900">
+                          Chưa có hoạt động nào
+                        </p>
+                        <p className="text-xs text-gray-500">
+                          Hãy bắt đầu mua sắm
+                        </p>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </motion.div>

@@ -10,6 +10,10 @@ import ResetPasswordPage from "./pages/ResetPasswordPage";
 import ProductManagementPage from "./pages/admin/ProductManagementPage";
 import OrderManagementPage from "./pages/admin/OrderManagementPage";
 import ProductListingPage from "./pages/user/ProductListingPage";
+import OrderHistory from "./pages/user/OrderHistory"; // 👈 THÊM IMPORT MỚI
+import CartPage from "./pages/user/CartPage"; // 👈 THÊM IMPORT MỚI
+import CheckoutPage from "./pages/user/CheckoutPage"; // 👈 THÊM IMPORT MỚI
+import OrderSuccessPage from "./pages/user/OrderSuccessPage"; // 👈 THÊM IMPORT MỚI
 
 import LoadingSpinner from "./components/LoadingSpinner";
 
@@ -140,8 +144,23 @@ function App() {
           path="/cart"
           element={
             <ProtectedRoute>
-              {/* TODO: Create CartPage */}
-              <div>Cart Page - Coming Soon</div>
+              <CartPage /> {/* 👈 SỬ DỤNG COMPONENT THẬT */}
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/checkout"
+          element={
+            <ProtectedRoute>
+              <CheckoutPage /> {/* 👈 THÊM ROUTE MỚI */}
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/order-success/:orderId"
+          element={
+            <ProtectedRoute>
+              <OrderSuccessPage /> {/* 👈 THÊM ROUTE MỚI */}
             </ProtectedRoute>
           }
         />
@@ -149,8 +168,7 @@ function App() {
           path="/orders"
           element={
             <ProtectedRoute>
-              {/* TODO: Create OrdersPage */}
-              <div>Orders Page - Coming Soon</div>
+              <OrderHistory /> {/* 👈 COMPONENT THẬT */}
             </ProtectedRoute>
           }
         />

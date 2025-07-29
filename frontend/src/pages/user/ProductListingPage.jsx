@@ -128,18 +128,6 @@ const ProductListingPage = () => {
     setCurrentPage(1);
   };
 
-  // Handle add to cart
-  const handleAddToCart = (product) => {
-    // TODO: Implement cart functionality
-    toast.success(`Đã thêm "${product.productName}" vào giỏ hàng!`);
-  };
-
-  // Handle add to wishlist
-  const handleAddToWishlist = (product) => {
-    // TODO: Implement wishlist functionality
-    toast.success(`Đã thêm "${product.productName}" vào danh sách yêu thích!`);
-  };
-
   // Pagination
   const totalPages = Math.ceil(filteredProducts.length / productsPerPage);
   const startIndex = (currentPage - 1) * productsPerPage;
@@ -227,18 +215,11 @@ const ProductListingPage = () => {
                 transition={{ duration: 0.5 }}
               >
                 {currentProducts.map((product, index) => (
-                  <motion.div
+                  <ProductCard
                     key={product._id}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.5, delay: index * 0.1 }}
-                  >
-                    <ProductCard
-                      product={product}
-                      onAddToCart={handleAddToCart}
-                      onAddToWishlist={handleAddToWishlist}
-                    />
-                  </motion.div>
+                    product={product}
+                    index={index}
+                  />
                 ))}
               </motion.div>
 

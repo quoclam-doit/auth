@@ -16,24 +16,7 @@ export const useCartStore = create(
                 set({ isLoading: true, error: null });
 
                 try {
-                    // Check inventory trước khi thêm vào cart
-                    const response = await fetch(`${API_URL}/inventory/check`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        credentials: 'include',
-                        body: JSON.stringify({
-                            productId: product._id,
-                            quantity: quantity
-                        })
-                    });
-
-                    const inventoryCheck = await response.json();
-
-                    if (!inventoryCheck.available) {
-                        throw new Error(inventoryCheck.message);
-                    }
+                    console.log("Adding to cart:", product, quantity); // Debug log
 
                     const currentItems = get().items;
                     const existingItemIndex = currentItems.findIndex(item => item.productId === product._id);
@@ -45,71 +28,68 @@ export const useCartStore = create(
 
                         // Check if new quantity exceeds inventory
                         if (newQuantity > product.inventory) {
-                            throw new Error(`Không thể thêm. Chỉ còn ${product.inventory} sản phẩm trong kho`);
+                            throw new Error(`Không thể thêm. Chỉ còn ${product.inventory} sản phẩm.`);
                         }
 
-                        const updatedItems = [...currentItems];
-                        updatedItems[existingItemIndex] = {
-                            ...existingItem,
-                            quantity: newQuantity
-                        };
+                        const updatedItems = currentItems.map((item, index) =>
+                            index === existingItemIndex
+                                ? { ...item, quantity: newQuantity }
+                                : item
+                        );
 
                         set({ items: updatedItems, isLoading: false });
                     } else {
                         // Add new item
+                        if (quantity > product.inventory) {
+                            throw new Error(`Không thể thêm. Chỉ còn ${product.inventory} sản phẩm.`);
+                        }
+
                         const newItem = {
                             productId: product._id,
-                            productName: product.productName,
+                            productName: product.productName || product.name, // 👈 FIX: Handle both field names
                             price: product.price,
                             quantity: quantity,
                             image: product.image,
-                            maxInventory: product.inventory,
-                            status: product.status
+                            maxInventory: product.inventory
                         };
 
-                        set({
-                            items: [...currentItems, newItem],
-                            isLoading: false
-                        });
+                        const updatedItems = [...currentItems, newItem];
+                        set({ items: updatedItems, isLoading: false });
                     }
 
+                    console.log("Cart updated:", get().items); // Debug log
+
                 } catch (error) {
+                    console.error("Add to cart error:", error);
                     set({ error: error.message, isLoading: false });
                     throw error;
                 }
             },
 
-            // Update item quantity
+            // Update quantity
             updateQuantity: async (productId, newQuantity) => {
-                if (newQuantity <= 0) {
-                    get().removeFromCart(productId);
-                    return;
-                }
-
                 set({ isLoading: true, error: null });
 
                 try {
-                    // Check inventory
-                    const response = await fetch(`${API_URL}/inventory/check`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        credentials: 'include',
-                        body: JSON.stringify({
-                            productId: productId,
-                            quantity: newQuantity
-                        })
-                    });
-
-                    const inventoryCheck = await response.json();
-
-                    if (!inventoryCheck.available) {
-                        throw new Error(inventoryCheck.message);
+                    if (newQuantity < 1) {
+                        throw new Error("Số lượng phải lớn hơn 0");
                     }
 
-                    const updatedItems = get().items.map(item =>
-                        item.productId === productId
+                    const currentItems = get().items;
+                    const itemIndex = currentItems.findIndex(item => item.productId === productId);
+
+                    if (itemIndex === -1) {
+                        throw new Error("Không tìm thấy sản phẩm trong giỏ hàng");
+                    }
+
+                    const item = currentItems[itemIndex];
+
+                    if (newQuantity > item.maxInventory) {
+                        throw new Error(`Chỉ còn ${item.maxInventory} sản phẩm`);
+                    }
+
+                    const updatedItems = currentItems.map((item, index) =>
+                        index === itemIndex
                             ? { ...item, quantity: newQuantity }
                             : item
                     );
@@ -145,36 +125,38 @@ export const useCartStore = create(
                 return items.reduce((total, item) => total + item.quantity, 0);
             },
 
-            // Process checkout (reduce inventory)
-            processCheckout: async () => {
+            // Process checkout (create order)
+            processCheckout: async (orderData) => {
                 set({ isLoading: true, error: null });
 
                 try {
                     const items = get().items;
 
                     if (items.length === 0) {
-                        throw new Error('Cart is empty');
+                        throw new Error('Giỏ hàng trống');
                     }
 
-                    // Prepare order items
-                    const orderItems = items.map(item => ({
-                        productId: item.productId,
-                        quantity: item.quantity
-                    }));
-
-                    const response = await fetch(`${API_URL}/inventory/process-order`, {
+                    const response = await fetch(`${API_URL}/orders`, {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
                         },
                         credentials: 'include',
-                        body: JSON.stringify({ items: orderItems })
+                        body: JSON.stringify({
+                            ...orderData,
+                            items: items.map(item => ({
+                                productId: item.productId,
+                                quantity: item.quantity,
+                                price: item.price
+                            })),
+                            totalAmount: get().getCartTotal()
+                        })
                     });
 
                     const result = await response.json();
 
                     if (!response.ok) {
-                        throw new Error(result.message || 'Failed to process order');
+                        throw new Error(result.message || 'Không thể tạo đơn hàng');
                     }
 
                     // Clear cart after successful checkout
