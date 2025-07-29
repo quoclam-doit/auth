@@ -48,6 +48,7 @@ export const useAuthStore = create((set) => ({
 				error: null,
 				isLoading: false,
 			});
+			return response.data; // Trả về dữ liệu để component có thể xử lý routing
 		} catch (error) {
 			// Nếu có lỗi, cập nhật error với thông báo từ server hoặc thông báo mặc định, tắt loading
 			set({ error: error.response?.data?.message || "Error logging in", isLoading: false });

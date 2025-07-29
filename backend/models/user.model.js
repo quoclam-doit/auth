@@ -2,33 +2,36 @@ import mongoose from "mongoose";
 
 const userSchema = new mongoose.Schema(
 	{
+		name: {
+			type: String,
+			required: [true, "Please provide a name"],
+			trim: true,
+		},
 		email: {
 			type: String,
-			required: true,
+			required: [true, "Please provide an email"],
 			unique: true,
+			trim: true,
+			lowercase: true,
 		},
 		password: {
 			type: String,
-			required: true,
-		},
-		name: {
-			type: String,
-			required: true,
-		},
-		lastLogin: {
-			type: Date,
-			default: Date.now,
+			required: [true, "Please provide a password"],
+			minlength: [6, "Password must be at least 6 characters"],
 		},
 		isVerified: {
 			type: Boolean,
 			default: false,
 		},
-		resetPasswordToken: String,
-		resetPasswordExpiresAt: Date,
-		verificationToken: String,
-		verificationTokenExpiresAt: Date,
+		role: {
+			type: String,
+			enum: ['user', 'admin'],
+			default: 'user',
+		},
 	},
-	{ timestamps: true }
+	{
+		timestamps: true,
+	}
 );
 
-export const User = mongoose.model("User", userSchema);
+export default mongoose.model("User", userSchema);

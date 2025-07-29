@@ -7,6 +7,9 @@ import EmailVerificationPage from "./pages/EmailVerificationPage";
 import DashboardPage from "./pages/DashboardPage";
 import ForgotPasswordPage from "./pages/ForgotPasswordPage";
 import ResetPasswordPage from "./pages/ResetPasswordPage";
+import ProductManagementPage from "./pages/admin/ProductManagementPage";
+import OrderManagementPage from "./pages/admin/OrderManagementPage";
+import ProductListingPage from "./pages/user/ProductListingPage";
 
 import LoadingSpinner from "./components/LoadingSpinner";
 
@@ -16,97 +19,225 @@ import { useEffect } from "react";
 
 // protect routes that require authentication
 const ProtectedRoute = ({ children }) => {
-	const { isAuthenticated, user } = useAuthStore();
+  const { isAuthenticated, user } = useAuthStore();
 
-	if (!isAuthenticated) {
-		return <Navigate to='/login' replace />;
-	}
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />;
+  }
 
-	if (!user.isVerified) {
-		return <Navigate to='/verify-email' replace />;
-	}
+  if (!user.isVerified) {
+    return <Navigate to="/verify-email" replace />;
+  }
 
-	return children;
+  return children;
 };
 
-// redirect authenticated users to the home page
+// protect admin routes
+const AdminProtectedRoute = ({ children }) => {
+  const { isAuthenticated, user } = useAuthStore();
+
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />;
+  }
+
+  if (!user.isVerified) {
+    return <Navigate to="/verify-email" replace />;
+  }
+
+  if (user.role !== "admin") {
+    return <Navigate to="/" replace />;
+  }
+
+  return children;
+};
+
+// redirect authenticated users to appropriate home page based on role
 const RedirectAuthenticatedUser = ({ children }) => {
-	const { isAuthenticated, user } = useAuthStore();
+  const { isAuthenticated, user } = useAuthStore();
 
-	if (isAuthenticated && user.isVerified) {
-		return <Navigate to='/' replace />;
-	}
+  if (isAuthenticated && user.isVerified) {
+    // Redirect based on user role
+    if (user.role === "admin") {
+      return <Navigate to="/admin/products" replace />;
+    } else {
+      // User gets redirected to products page (main shopping page)
+      return <Navigate to="/products" replace />;
+    }
+  }
 
-	return children;
+  return children;
 };
+
+// Auth Layout with floating shapes and centering
+const AuthLayout = ({ children }) => (
+  <div className="min-h-screen bg-gradient-to-br from-gray-900 via-green-900 to-emerald-900 flex items-center justify-center relative overflow-hidden">
+    <FloatingShape
+      color="bg-green-500"
+      size="w-64 h-64"
+      top="-5%"
+      left="10%"
+      delay={0}
+    />
+    <FloatingShape
+      color="bg-emerald-500"
+      size="w-48 h-48"
+      top="70%"
+      left="80%"
+      delay={5}
+    />
+    <FloatingShape
+      color="bg-lime-500"
+      size="w-32 h-32"
+      top="40%"
+      left="-10%"
+      delay={2}
+    />
+    {children}
+  </div>
+);
 
 function App() {
-	const { isCheckingAuth, checkAuth } = useAuthStore();
+  const { isCheckingAuth, checkAuth } = useAuthStore();
 
-	useEffect(() => {
-		checkAuth();
-	}, [checkAuth]);
+  useEffect(() => {
+    checkAuth();
+  }, [checkAuth]);
 
-	if (isCheckingAuth) return <LoadingSpinner />;
+  if (isCheckingAuth) return <LoadingSpinner />;
 
-	return (
-		<div
-			className='min-h-screen bg-gradient-to-br
-    from-gray-900 via-green-900 to-emerald-900 flex items-center justify-center relative overflow-hidden'
-		>
-			<FloatingShape color='bg-green-500' size='w-64 h-64' top='-5%' left='10%' delay={0} />
-			<FloatingShape color='bg-emerald-500' size='w-48 h-48' top='70%' left='80%' delay={5} />
-			<FloatingShape color='bg-lime-500' size='w-32 h-32' top='40%' left='-10%' delay={2} />
+  return (
+    <>
+      <Routes>
+        {/* User Dashboard/Profile */}
+        <Route
+          path="/"
+          element={
+            <ProtectedRoute>
+              <DashboardPage />
+            </ProtectedRoute>
+          }
+        />
 
-			<Routes>
-				<Route
-					path='/'
-					element={
-						<ProtectedRoute>
-							<DashboardPage />
-						</ProtectedRoute>
-					}
-				/>
-				<Route
-					path='/signup'
-					element={
-						<RedirectAuthenticatedUser>
-							<SignUpPage />
-						</RedirectAuthenticatedUser>
-					}
-				/>
-				<Route
-					path='/login'
-					element={
-						<RedirectAuthenticatedUser>
-							<LoginPage />
-						</RedirectAuthenticatedUser>
-					}
-				/>
-				<Route path='/verify-email' element={<EmailVerificationPage />} />
-				<Route
-					path='/forgot-password'
-					element={
-						<RedirectAuthenticatedUser>
-							<ForgotPasswordPage />
-						</RedirectAuthenticatedUser>
-					}
-				/>
+        {/* User Routes - Clean layout without floating shapes */}
+        <Route
+          path="/products"
+          element={
+            <ProtectedRoute>
+              <ProductListingPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/products/:id"
+          element={
+            <ProtectedRoute>
+              {/* TODO: Create ProductDetailPage */}
+              <div>Product Detail Page - Coming Soon</div>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/cart"
+          element={
+            <ProtectedRoute>
+              {/* TODO: Create CartPage */}
+              <div>Cart Page - Coming Soon</div>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/orders"
+          element={
+            <ProtectedRoute>
+              {/* TODO: Create OrdersPage */}
+              <div>Orders Page - Coming Soon</div>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/wishlist"
+          element={
+            <ProtectedRoute>
+              {/* TODO: Create WishlistPage */}
+              <div>Wishlist Page - Coming Soon</div>
+            </ProtectedRoute>
+          }
+        />
 
-				<Route
-					path='/reset-password/:token'
-					element={
-						<RedirectAuthenticatedUser>
-							<ResetPasswordPage />
-						</RedirectAuthenticatedUser>
-					}
-				/>
-				{/* catch all routes */}
-				<Route path='*' element={<Navigate to='/' replace />} />
-			</Routes>
-			<Toaster />
-		</div>
-	);
+        {/* Auth Routes - With floating shapes and centering */}
+        <Route
+          path="/signup"
+          element={
+            <RedirectAuthenticatedUser>
+              <AuthLayout>
+                <SignUpPage />
+              </AuthLayout>
+            </RedirectAuthenticatedUser>
+          }
+        />
+        <Route
+          path="/login"
+          element={
+            <RedirectAuthenticatedUser>
+              <AuthLayout>
+                <LoginPage />
+              </AuthLayout>
+            </RedirectAuthenticatedUser>
+          }
+        />
+        <Route
+          path="/verify-email"
+          element={
+            <AuthLayout>
+              <EmailVerificationPage />
+            </AuthLayout>
+          }
+        />
+        <Route
+          path="/forgot-password"
+          element={
+            <RedirectAuthenticatedUser>
+              <AuthLayout>
+                <ForgotPasswordPage />
+              </AuthLayout>
+            </RedirectAuthenticatedUser>
+          }
+        />
+        <Route
+          path="/reset-password/:token"
+          element={
+            <RedirectAuthenticatedUser>
+              <AuthLayout>
+                <ResetPasswordPage />
+              </AuthLayout>
+            </RedirectAuthenticatedUser>
+          }
+        />
+
+        {/* Admin routes - Clean layout */}
+        <Route
+          path="/admin/products"
+          element={
+            <AdminProtectedRoute>
+              <ProductManagementPage />
+            </AdminProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/orders"
+          element={
+            <AdminProtectedRoute>
+              <OrderManagementPage />
+            </AdminProtectedRoute>
+          }
+        />
+
+        {/* catch all routes */}
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+      <Toaster />
+    </>
+  );
 }
 
 export default App;

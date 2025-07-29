@@ -1,4 +1,4 @@
-# Hướng dẫn chuyển gửi mail từ Mailtrap sang Gmail SMTP (Nodemailer)
+# ECOMMERCE SYSTEM
 
 ## 1. Mục đích
 
